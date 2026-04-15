@@ -220,8 +220,8 @@ function DeepReport({ a, animal }) {
 
 // ===== ANALYTICS =====
 // 🔧 Replace with your Supabase credentials to enable tracking
-const SB_URL = "https://qsafjrwbduuipupudfve.supabase.co";
-const SB_KEY = "sb_publishable_yvZqcbFMGJuHJ4zPZBEcXA_VFjk6x7U";
+const SB_URL = "https://qtkojajqgxpnzplgkphi.supabase.co";
+const SB_KEY = "sb_publishable_sbf-h8vkP4CRlRpl3tPfhw_XYQkW-bh";
 const TRACKING_ENABLED = true; // Set true after configuring Supabase
 
 const sessionId = "s_" + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);

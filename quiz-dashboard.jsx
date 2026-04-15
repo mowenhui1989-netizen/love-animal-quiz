@@ -1,12 +1,12 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from "recharts";
 
 // ============================================================
 // 🔧 CONFIG: Replace with your Supabase credentials
 // ============================================================
-const SUPABASE_URL = "YOUR_SUPABASE_URL";     // e.g. https://xxxxx.supabase.co
-const SUPABASE_KEY = "YOUR_SUPABASE_ANON_KEY"; // your anon key
-const USE_MOCK = true; // Set to false when Supabase is connected
+const SUPABASE_URL = "https://qtkojajqgxpnzplgkphi.supabase.co";
+const SUPABASE_KEY = "sb_publishable_sbf-h8vkP4CRlRpl3tPfhw_XYQkW-bh";
+const USE_MOCK = false;
 // ============================================================
 
 const ANIMALS = {
@@ -100,24 +100,25 @@ export default function Dashboard() {
   const [data, setData] = useState(null);
   const [range, setRange] = useState(7); // 7 or 30 days
   const [loading, setLoading] = useState(true);
+  const [lastRefresh, setLastRefresh] = useState(null);
 
-  useEffect(() => {
-    async function load() {
-      setLoading(true);
-      if (USE_MOCK) {
-        const mock = generateMockData();
-        setData(mock);
-      } else {
-        const [results, events] = await Promise.all([
-          fetchFromSupabase("quiz_results"),
-          fetchFromSupabase("quiz_events")
-        ]);
-        setData({ results, events });
-      }
-      setLoading(false);
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    if (USE_MOCK) {
+      const mock = generateMockData();
+      setData(mock);
+    } else {
+      const [results, events] = await Promise.all([
+        fetchFromSupabase("quiz_results"),
+        fetchFromSupabase("quiz_events")
+      ]);
+      setData({ results, events });
     }
-    load();
+    setLastRefresh(new Date());
+    setLoading(false);
   }, []);
+
+  useEffect(() => { loadData(); }, [loadData]);
 
   const processed = useMemo(() => {
     if (!data) return null;
@@ -210,11 +211,11 @@ export default function Dashboard() {
         <div>
           <h1 style={{ fontSize: 24, fontWeight: 700, color: "#2D2035", margin: "0 0 4px" }}>🦦 恋爱动物测试 · 数据面板</h1>
           <p style={{ fontSize: 13, color: "#8A7A8A", margin: 0 }}>
-            {USE_MOCK && <span style={{ background: "#FFF0E0", color: "#D4915D", padding: "2px 8px", borderRadius: 8, fontSize: 11, fontWeight: 600, marginRight: 6 }}>DEMO 数据</span>}
+            {USE_MOCK && <span style={{ background: "#FFF0E0", color: "#D4915D", padding: "2px 8px", borderRadius: 8, fontSize: 11, fontWeight: 600, marginRight: 6 }}>DEMO</span>}
             累计完成 {processed.allTotal} 次测试
           </p>
         </div>
-        <div style={{ display: "flex", gap: 6 }}>
+        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
           {[7, 30].map(d => (
             <button key={d} onClick={() => setRange(d)} style={{
               fontFamily: F, fontSize: 13, fontWeight: 600,
@@ -224,6 +225,14 @@ export default function Dashboard() {
               borderRadius: 10, padding: "8px 16px", cursor: "pointer", transition: "all 0.2s"
             }}>近{d}天</button>
           ))}
+          <button onClick={loadData} disabled={loading} style={{
+            fontFamily: F, fontSize: 13, fontWeight: 600,
+            color: "#FFF", background: loading ? "#CCC" : "#7BAE7F",
+            border: "none", borderRadius: 10, padding: "8px 14px",
+            cursor: loading ? "default" : "pointer", transition: "all 0.2s",
+            display: "flex", alignItems: "center", gap: 4
+          }}>{loading ? "刷新中..." : "🔄 刷新"}</button>
+          {lastRefresh && <span style={{ fontSize: 11, color: "#B8A8B8" }}>{lastRefresh.toLocaleTimeString()}</span>}
         </div>
       </div>
 
